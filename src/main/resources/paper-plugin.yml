@@ -1,6 +1,6 @@
 name: PacketBooks
 description: A plugin to make the content of books purely packet based, fixing a bunch of exploits with oversized data.
-api-version: 1.21
+api-version: 1.21.6
 version: 1.0.0
 
 main: net.strokkur.packetbooks.PacketBooks
