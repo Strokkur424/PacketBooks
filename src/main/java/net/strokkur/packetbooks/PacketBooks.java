@@ -4,6 +4,7 @@ import io.papermc.paper.event.player.PlayerInventorySlotChangeEvent;
 import net.strokkur.packetbooks.data.AbstractBookDataHolder;
 import net.strokkur.packetbooks.data.BookData;
 import net.strokkur.packetbooks.data.FileBookDataHolder;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.event.EventHandler;
@@ -54,12 +55,14 @@ public final class PacketBooks extends JavaPlugin implements Listener {
         final boolean mainSlot = event.getPlayer().getInventory().getHeldItemSlot() == event.getSlot();
         final boolean offhandSlot = event.getSlot() == 40;
 
-        if (mainSlot || offhandSlot) {
-            tryPopulateBookContents(event.getNewItemStack());
-        } else {
-            tryClearBookContents(event.getNewItemStack());
-            tryClearBookContents(event.getOldItemStack());
-        }
+        Bukkit.getScheduler().runTask(this, () -> {
+            final ItemStack item = event.getPlayer().getInventory().getItem(event.getSlot());
+            if (mainSlot || offhandSlot) {
+                tryPopulateBookContents(item);
+            } else {
+                tryClearBookContents(item);
+            }
+        });
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
