@@ -105,8 +105,15 @@ public final class PacketBooks extends JavaPlugin implements Listener {
     }
 
     private void clearBookContents(final ItemStack book) {
-        //noinspection ResultOfMethodCallIgnored
-        book.editMeta(BookMeta.class, meta -> meta.pages(List.of()));
+        book.editMeta(BookMeta.class, meta -> {
+            if (!meta.getPersistentDataContainer().has(bookIdKey, PersistentDataType.INTEGER)) {
+                // No ID set, meaning first save the book
+                final int id = this.holder.saveNewBookData(new BookData(meta.pages()));
+                meta.getPersistentDataContainer().set(bookIdKey, PersistentDataType.INTEGER, id);
+            }
+
+            meta.pages(List.of());
+        });
         getSLF4JLogger().debug("[clear] book contents for {}", book);
     }
 
