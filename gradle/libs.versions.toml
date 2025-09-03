@@ -4,6 +4,7 @@ paper = "1.21.6-R0.1-SNAPSHOT"
 
 run = "3.0.0-beta.1"
 paperweight = "2.0.0-beta.18"
+spotless = "7.0.2"
 
 caffeine = "3.2.2"
 blossom = "2.1.0"
@@ -16,3 +17,4 @@ caffeine = { module = "com.github.ben-manes.caffeine:caffeine", version.ref = "c
 run-paper = { id = "xyz.jpenilla.run-paper", version.ref = "run" }
 blossom = { id = "net.kyori.blossom", version.ref = "blossom" }
 paperweight-userdev = { id = "io.papermc.paperweight.userdev", version.ref = "paperweight" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }

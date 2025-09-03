@@ -1,6 +1,7 @@
 plugins {
     id("java")
     alias(libs.plugins.run.paper)
+    alias(libs.plugins.spotless)
     alias(libs.plugins.blossom)
 }
 
@@ -15,6 +16,13 @@ repositories {
 dependencies {
     compileOnly(libs.paper.api)
     compileOnly(libs.caffeine)
+}
+
+spotless {
+    java {
+        licenseHeaderFile(rootProject.file("HEADER"))
+        target("**/*.java")
+    }
 }
 
 sourceSets.main {
