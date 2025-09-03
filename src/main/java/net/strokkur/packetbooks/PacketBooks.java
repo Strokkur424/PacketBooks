@@ -1,6 +1,13 @@
 package net.strokkur.packetbooks;
 
+import com.google.common.base.Preconditions;
+import io.papermc.paper.datacomponent.DataComponentTypes;
+import io.papermc.paper.datacomponent.item.WritableBookContent;
+import io.papermc.paper.datacomponent.item.WrittenBookContent;
 import io.papermc.paper.event.player.PlayerInventorySlotChangeEvent;
+import io.papermc.paper.text.Filtered;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.strokkur.packetbooks.data.AbstractBookDataHolder;
 import net.strokkur.packetbooks.data.BookData;
 import net.strokkur.packetbooks.data.FileBookDataHolder;
@@ -24,6 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+@SuppressWarnings("UnstableApiUsage")
 public final class PacketBooks extends JavaPlugin implements Listener {
 
     private final AbstractBookDataHolder holder = new FileBookDataHolder(this);
@@ -105,15 +113,42 @@ public final class PacketBooks extends JavaPlugin implements Listener {
     }
 
     private void clearBookContents(final ItemStack book) {
-        book.editMeta(BookMeta.class, meta -> {
-            if (!meta.getPersistentDataContainer().has(bookIdKey, PersistentDataType.INTEGER)) {
-                // No ID set, meaning first save the book
-                final int id = this.holder.saveNewBookData(new BookData(meta.pages()));
-                meta.getPersistentDataContainer().set(bookIdKey, PersistentDataType.INTEGER, id);
+        book.editPersistentDataContainer(pdc -> {
+            final List<Component> components = new ArrayList<>();
+
+            if (book.hasData(DataComponentTypes.WRITTEN_BOOK_CONTENT)) {
+                final WrittenBookContent content = book.getData(DataComponentTypes.WRITTEN_BOOK_CONTENT);
+                Preconditions.checkNotNull(content);
+
+                for (final Filtered<Component> componentFiltered : content.pages()) {
+                    components.add(componentFiltered.raw());
+                }
+
+                final WrittenBookContent empty = WrittenBookContent.writtenBookContent(content.title(), content.author())
+                    .generation(content.generation())
+                    .resolved(content.resolved())
+                    .build();
+
+                book.setData(DataComponentTypes.WRITTEN_BOOK_CONTENT, empty);
+            } else if (book.hasData(DataComponentTypes.WRITABLE_BOOK_CONTENT)) {
+                final WritableBookContent content = book.getData(DataComponentTypes.WRITABLE_BOOK_CONTENT);
+                Preconditions.checkNotNull(content);
+
+                for (final Filtered<String> componentFiltered : content.pages()) {
+                    components.add(PlainTextComponentSerializer.plainText().deserialize(componentFiltered.raw()));
+                }
+
+                final WritableBookContent empty = WritableBookContent.writeableBookContent().build();
+                book.setData(DataComponentTypes.WRITABLE_BOOK_CONTENT, empty);
             }
 
-            meta.pages(List.of());
+            if (!pdc.has(bookIdKey, PersistentDataType.INTEGER)) {
+                // No ID set, meaning first save the book
+                final int id = this.holder.saveNewBookData(new BookData(components));
+                pdc.set(bookIdKey, PersistentDataType.INTEGER, id);
+            }
         });
+
         getSLF4JLogger().debug("[clear] book contents for {}", book);
     }
 
@@ -130,8 +165,30 @@ public final class PacketBooks extends JavaPlugin implements Listener {
             return;
         }
 
-        //noinspection ResultOfMethodCallIgnored
-        book.editMeta(BookMeta.class, meta -> meta.pages(data.components()));
+        if (book.hasData(DataComponentTypes.WRITTEN_BOOK_CONTENT)) {
+            final WrittenBookContent empty = book.getData(DataComponentTypes.WRITTEN_BOOK_CONTENT);
+            Preconditions.checkNotNull(empty);
+
+            final WrittenBookContent original = WrittenBookContent.writtenBookContent(empty.title(), empty.author())
+                .addPages(data.components())
+                .generation(empty.generation())
+                .resolved(empty.resolved())
+                .build();
+            book.setData(DataComponentTypes.WRITTEN_BOOK_CONTENT, original);
+        } else if (book.hasData(DataComponentTypes.WRITABLE_BOOK_CONTENT)) {
+            final WritableBookContent empty = book.getData(DataComponentTypes.WRITABLE_BOOK_CONTENT);
+            Preconditions.checkNotNull(empty);
+
+            final List<String> plainText = data.components().stream()
+                .map(PlainTextComponentSerializer.plainText()::serialize)
+                .toList();
+
+            final WritableBookContent original = WritableBookContent.writeableBookContent()
+                .addPages(plainText)
+                .build();
+            book.setData(DataComponentTypes.WRITABLE_BOOK_CONTENT, original);
+        }
+
         getSLF4JLogger().debug("[populate] book contents for {}", book);
     }
 }
