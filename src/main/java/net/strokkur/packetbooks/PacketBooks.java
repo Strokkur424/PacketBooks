@@ -4,14 +4,15 @@ import io.papermc.paper.event.player.PlayerInventorySlotChangeEvent;
 import net.strokkur.packetbooks.data.AbstractBookDataHolder;
 import net.strokkur.packetbooks.data.BookData;
 import net.strokkur.packetbooks.data.FileBookDataHolder;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryOpenEvent;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerEditBookEvent;
-import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.persistence.PersistentDataContainer;
@@ -51,24 +52,44 @@ public final class PacketBooks extends JavaPlugin implements Listener {
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
-    void onBookMove(final PlayerInventorySlotChangeEvent event) {
-        final boolean mainSlot = event.getPlayer().getInventory().getHeldItemSlot() == event.getSlot();
-        final boolean offhandSlot = event.getSlot() == 40;
-
-        Bukkit.getScheduler().runTask(this, () -> {
-            final ItemStack item = event.getPlayer().getInventory().getItem(event.getSlot());
-            if (mainSlot || offhandSlot) {
-                tryPopulateBookContents(item);
-            } else {
-                tryClearBookContents(item);
+    void onClose(final InventoryCloseEvent event) {
+        getServer().getScheduler().runTask(this, () -> {
+            for (int slot = 0; slot < 9; slot++) {
+                tryPopulateBookContents(event.getPlayer().getInventory().getItem(slot));
             }
         });
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
-    void onSlotChange(final PlayerItemHeldEvent event) {
-        tryClearBookContents(event.getPlayer().getInventory().getItem(event.getPreviousSlot()));
-        tryPopulateBookContents(event.getPlayer().getInventory().getItem(event.getNewSlot()));
+    void onOpen(final InventoryOpenEvent event) {
+        getServer().getScheduler().runTask(this, () -> {
+            for (final ItemStack is : event.getView().getTopInventory().getContents()) {
+                tryClearBookContents(is);
+            }
+
+            for (final ItemStack is : event.getView().getBottomInventory()) {
+                tryClearBookContents(is);
+            }
+        });
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    void onBookMoveInPlayerInventory(final PlayerInventorySlotChangeEvent event) {
+        if (event.getPlayer().getOpenInventory().getTopInventory().getType() != InventoryType.CRAFTING) {
+            return;
+        }
+
+        final boolean hotbarSlot = 0 <= event.getSlot() && event.getSlot() < 9;
+        final boolean offhandSlot = event.getSlot() == 40;
+
+        getServer().getScheduler().runTask(this, () -> {
+            final ItemStack item = event.getPlayer().getInventory().getItem(event.getSlot());
+            if (hotbarSlot || offhandSlot) {
+                tryPopulateBookContents(item);
+            } else {
+                tryClearBookContents(item);
+            }
+        });
     }
 
     private void tryPopulateBookContents(final @Nullable ItemStack item) {
@@ -86,7 +107,7 @@ public final class PacketBooks extends JavaPlugin implements Listener {
     private void clearBookContents(final ItemStack book) {
         //noinspection ResultOfMethodCallIgnored
         book.editMeta(BookMeta.class, meta -> meta.pages(List.of()));
-        getSLF4JLogger().info("[clear] book contents for {}", book);
+        getSLF4JLogger().debug("[clear] book contents for {}", book);
     }
 
     private void populateBookContents(final ItemStack book) {
