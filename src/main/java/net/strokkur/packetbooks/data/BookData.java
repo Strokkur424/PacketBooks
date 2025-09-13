@@ -28,30 +28,30 @@ import java.util.List;
 
 public record BookData(List<Component> components) {
 
-    public String serializeToJson() {
-        final GsonComponentSerializer serializer = GsonComponentSerializer.gson();
+  public static BookData deserializeFromJson(final String json) {
+    final GsonComponentSerializer serializer = GsonComponentSerializer.gson();
+    final JsonArray pagesRaw = JsonParser.parseString(json).getAsJsonArray();
 
-        final JsonArray pages = new JsonArray(components.size());
-        for (final Component component : components) {
-            pages.add(serializer.serializeToTree(component));
-        }
-
-        return pages.toString();
+    final List<Component> pages = new ArrayList<>(pagesRaw.size());
+    for (final JsonElement jsonElement : pagesRaw) {
+      pages.add(serializer.deserializeFromTree(jsonElement));
     }
 
-    public static BookData deserializeFromJson(final String json) {
-        final GsonComponentSerializer serializer = GsonComponentSerializer.gson();
-        final JsonArray pagesRaw = JsonParser.parseString(json).getAsJsonArray();
+    return new BookData(pages);
+  }
 
-        final List<Component> pages = new ArrayList<>(pagesRaw.size());
-        for (final JsonElement jsonElement : pagesRaw) {
-            pages.add(serializer.deserializeFromTree(jsonElement));
-        }
+  public static BookData empty() {
+    return new BookData(List.of());
+  }
 
-        return new BookData(pages);
+  public String serializeToJson() {
+    final GsonComponentSerializer serializer = GsonComponentSerializer.gson();
+
+    final JsonArray pages = new JsonArray(components.size());
+    for (final Component component : components) {
+      pages.add(serializer.serializeToTree(component));
     }
 
-    public static BookData empty() {
-        return new BookData(List.of());
-    }
+    return pages.toString();
+  }
 }

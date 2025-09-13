@@ -28,75 +28,75 @@ import java.nio.file.Path;
 
 public class FileBookDataHolder extends AbstractBookDataHolder {
 
-    private final JavaPlugin plugin;
-    private final Path currentIdPath;
+  private final JavaPlugin plugin;
+  private final Path currentIdPath;
 
-    public FileBookDataHolder(final JavaPlugin plugin) {
-        this.plugin = plugin;
-        this.currentIdPath = this.plugin.getDataPath().resolve("books/_curr.bin");
+  public FileBookDataHolder(final JavaPlugin plugin) {
+    this.plugin = plugin;
+    this.currentIdPath = this.plugin.getDataPath().resolve("books/_curr.bin");
+  }
+
+  @Override
+  @Nullable
+  protected BookData loadBookData(final int id) {
+    final Path path = getPathForId(id);
+    if (!Files.exists(path)) {
+      return BookData.empty();
     }
 
-    @Override
-    @Nullable
-    protected BookData loadBookData(final int id) {
-        final Path path = getPathForId(id);
-        if (!Files.exists(path)) {
-            return BookData.empty();
-        }
-
-        final String json;
-        try {
-            json = Files.readString(path, StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            plugin.getSLF4JLogger().error("Failed to load book data for id {}", id, e);
-            return null;
-        }
-
-        return BookData.deserializeFromJson(json);
+    final String json;
+    try {
+      json = Files.readString(path, StandardCharsets.UTF_8);
+    } catch (IOException e) {
+      plugin.getSLF4JLogger().error("Failed to load book data for id {}", id, e);
+      return null;
     }
 
-    @Override
-    protected void saveBookData(final int id, final BookData bookData) {
-        final String json = bookData.serializeToJson();
-        final Path path = getPathForId(id);
+    return BookData.deserializeFromJson(json);
+  }
 
-        try {
-            Files.createDirectories(path.getParent());
-            Files.writeString(path, json, StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            plugin.getSLF4JLogger().error("Failed to save book data for id {}", id, e);
-        }
+  @Override
+  protected void saveBookData(final int id, final BookData bookData) {
+    final String json = bookData.serializeToJson();
+    final Path path = getPathForId(id);
+
+    try {
+      Files.createDirectories(path.getParent());
+      Files.writeString(path, json, StandardCharsets.UTF_8);
+    } catch (IOException e) {
+      plugin.getSLF4JLogger().error("Failed to save book data for id {}", id, e);
+    }
+  }
+
+  @Override
+  public void loadCurrentId() {
+    if (!Files.exists(currentIdPath)) {
+      super.currentId = 0;
+      return;
     }
 
-    @Override
-    public void loadCurrentId() {
-        if (!Files.exists(currentIdPath)) {
-            super.currentId = 0;
-            return;
-        }
-
-        try {
-            final ByteBuffer buf = ByteBuffer.wrap(Files.readAllBytes(currentIdPath));
-            super.currentId = buf.getInt();
-        } catch (IOException e) {
-            plugin.getSLF4JLogger().error("Failed to load current book id path.", e);
-        }
+    try {
+      final ByteBuffer buf = ByteBuffer.wrap(Files.readAllBytes(currentIdPath));
+      super.currentId = buf.getInt();
+    } catch (IOException e) {
+      plugin.getSLF4JLogger().error("Failed to load current book id path.", e);
     }
+  }
 
-    @Override
-    protected void incrementCurrentId() {
-        super.currentId++;
+  @Override
+  protected void incrementCurrentId() {
+    super.currentId++;
 
-        try {
-            final ByteBuffer buf = ByteBuffer.allocate(4);
-            buf.putInt(super.currentId);
-            Files.write(currentIdPath, buf.array());
-        } catch (IOException e) {
-            plugin.getSLF4JLogger().error("Failed to save current book id path.", e);
-        }
+    try {
+      final ByteBuffer buf = ByteBuffer.allocate(4);
+      buf.putInt(super.currentId);
+      Files.write(currentIdPath, buf.array());
+    } catch (IOException e) {
+      plugin.getSLF4JLogger().error("Failed to save current book id path.", e);
     }
+  }
 
-    private Path getPathForId(final int id) {
-        return plugin.getDataFolder().toPath().resolve("books/" + id + ".txt");
-    }
+  private Path getPathForId(final int id) {
+    return plugin.getDataFolder().toPath().resolve("books/" + id + ".txt");
+  }
 }
