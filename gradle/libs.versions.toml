@@ -2,6 +2,9 @@
 minecraft = "1.21.8"
 paper = "1.21.6-R0.1-SNAPSHOT"
 
+strokk-config = "1.0.2"
+strokk-commands = "1.3.0-SNAPSHOT"
+
 run = "3.0.0-beta.1"
 paperweight = "2.0.0-beta.18"
 spotless = "7.0.2"
@@ -12,6 +15,10 @@ blossom = "2.1.0"
 [libraries]
 paper-api = { module = "io.papermc.paper:paper-api", version.ref = "paper" }
 caffeine = { module = "com.github.ben-manes.caffeine:caffeine", version.ref = "caffeine" }
+strokk-config-annotations = { module = "net.strokkur:strokk-config-annotations", version.ref = "strokk-config" }
+strokk-config-processor = { module = "net.strokkur:strokk-config-processor", version.ref = "strokk-config" }
+strokk-commands-annotations = { module = "net.strokkur:strokk-commands-annotations", version.ref = "strokk-commands" }
+strokk-commands-processor = { module = "net.strokkur:strokk-commands-processor", version.ref = "strokk-commands" }
 
 [plugins]
 run-paper = { id = "xyz.jpenilla.run-paper", version.ref = "run" }

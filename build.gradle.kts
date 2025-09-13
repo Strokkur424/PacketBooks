@@ -11,11 +11,18 @@ version = "1.0.0"
 repositories {
     mavenCentral()
     maven("https://repo.papermc.io/repository/maven-public/")
+    maven("https://eldonexus.de/repository/maven-public/")
 }
 
 dependencies {
     compileOnly(libs.paper.api)
     compileOnly(libs.caffeine)
+
+    compileOnly(libs.strokk.commands.annotations)
+    compileOnly(libs.strokk.config.annotations)
+
+    annotationProcessor(libs.strokk.commands.processor)
+    annotationProcessor(libs.strokk.config.processor)
 }
 
 spotless {

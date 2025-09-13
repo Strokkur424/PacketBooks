@@ -1,0 +1,21 @@
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+#                                                                                                                     #
+#                                             PacketBooks - Plugin config                                             #
+#                                          Apparently approved by EterNity??                                          #
+#                                                                                                                     #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+# This config is really tiny. There isn't a lot going on, after all.
+# This setting right here is the only setting which currently exists.
+# There are two allowed values:
+#
+#   STANDARD  The standard operating mode of PacketBooks, where all books are loaded when you open a chest and unloaded
+#             once you close a chest or move the book outside your hotbar.
+#
+#   UNDO      You do not want to use PacketBooks anymore? Oh, your books don't work? Oops. Yeah, so, you cannot just
+#             remove the plugin, since most book items do not have any content otherwise. If you still wish to
+#             reduce the amount of good plugins in your plugin list by one, without angering your players, you
+#             should keep PacketBooks, but set the mode to 'UNDO', which will slowly, but steadily permanently
+#             re-populate your books. After some time has passed, and you think that it is now safe to remove the
+#             plugin, you are free to do so without losing all book contents.
+mode: STANDARD
