@@ -20,13 +20,18 @@ package net.strokkur.packetbooks.config;
 import net.strokkur.config.Format;
 import net.strokkur.config.annotations.ConfigFilePath;
 import net.strokkur.config.annotations.ConfigFormat;
+import net.strokkur.config.annotations.CustomDeserializer;
 import net.strokkur.config.annotations.CustomParse;
+import net.strokkur.config.annotations.CustomSerializer;
 import net.strokkur.config.annotations.GenerateConfig;
 import net.strokkur.packetbooks.PacketBooks;
+import org.bukkit.configuration.file.YamlConfiguration;
+
+import java.io.StringReader;
 
 @GenerateConfig
 @ConfigFilePath("config.yml")
-@ConfigFormat(Format.YAML_SNAKEYAML)
+@ConfigFormat(Format.CUSTOM)
 class PacketBooksConfigModel {
 
   @CustomParse("parseMode")
@@ -38,11 +43,23 @@ class PacketBooksConfigModel {
     }
 
     final PacketBooks plugin = PacketBooks.getPlugin(PacketBooks.class);
-    if (!mode.equalsIgnoreCase("default") && !plugin.hasSendDefaultFallback()) {
+    if (!mode.equalsIgnoreCase("standard") && !plugin.hasSendDefaultFallback()) {
       plugin.getSLF4JLogger().warn("({}) The mode has been set to {}, which is not a valid mode. Defaulting to STANDARD.", PacketBooksConfig.FILE_PATH, mode);
       plugin.setHasSendDefaultFallback(true);
     }
 
     return PluginMode.STANDARD;
+  }
+
+  @CustomSerializer
+  static String serialize(final PacketBooksConfigModel model) {
+    return "mode: " + model.mode;
+  }
+
+  @CustomDeserializer
+  static PacketBooksConfigModel deserialize(final String serialized) {
+    final PacketBooksConfigModel out = new PacketBooksConfigModel();
+    out.mode = YamlConfiguration.loadConfiguration(new StringReader(serialized)).getString("mode", out.mode);
+    return out;
   }
 }

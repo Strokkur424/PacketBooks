@@ -28,6 +28,7 @@ import net.strokkur.packetbooks.PacketBooks;
 import net.strokkur.packetbooks.data.BookData;
 import org.bukkit.Material;
 import org.bukkit.event.Listener;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.jspecify.annotations.Nullable;
@@ -42,6 +43,18 @@ public abstract class AbstractModeListener implements Listener {
 
   public AbstractModeListener(final PacketBooks plugin) {
     this.plugin = plugin;
+  }
+
+  protected void populateInventory(Inventory inventory) {
+    for (final ItemStack is : inventory.getContents()) {
+      tryPopulateBookContents(is);
+    }
+  }
+
+  protected void clearInventory(Inventory inventory) {
+    for (final ItemStack is : inventory.getContents()) {
+      tryClearBookContents(is);
+    }
   }
 
   protected boolean isDirectlyAccessibleSlot(int slot) {

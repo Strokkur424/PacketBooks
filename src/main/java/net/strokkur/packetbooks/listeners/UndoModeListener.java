@@ -22,8 +22,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
 
 public class UndoModeListener extends AbstractModeListener {
 
@@ -32,12 +30,6 @@ public class UndoModeListener extends AbstractModeListener {
 
     for (final Player player : plugin.getServer().getOnlinePlayers()) {
       populateInventory(player.getInventory());
-    }
-  }
-
-  private void populateInventory(Inventory inventory) {
-    for (final ItemStack is : inventory.getContents()) {
-      tryPopulateBookContents(is);
     }
   }
 

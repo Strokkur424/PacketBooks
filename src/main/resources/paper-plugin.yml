@@ -8,3 +8,14 @@ loader: net.strokkur.packetbooks.PacketBooksLoader
 
 author: Strokkur24
 website: https://github.com/Strokkur424/PacketBooks
+
+permissions:
+  packetbooks.command.use:
+    default: op
+    description: Permission for '/packetbooks'
+  packetbooks.command.reload:
+    default: op
+    description: Permission for '/packetbooks reload'
+  packetbooks.command.version:
+    default: true
+    description: Permission for '/packetbooks version'

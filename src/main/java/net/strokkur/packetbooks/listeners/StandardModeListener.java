@@ -26,7 +26,10 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerEditBookEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.persistence.PersistentDataContainer;
@@ -43,26 +46,49 @@ public class StandardModeListener extends AbstractModeListener {
 
     for (final Player player : plugin.getServer().getOnlinePlayers()) {
       if (player.getOpenInventory().getType() == InventoryType.CRAFTING) {
-
-        final @Nullable ItemStack[] contents = player.getInventory().getContents();
-        for (int i = 0, contentsLength = contents.length; i < contentsLength; i++) {
-          final ItemStack itemStack = contents[i];
-          if (itemStack == null || itemStack.isEmpty()) {
-            continue;
-          }
-
-          if (isDirectlyAccessibleSlot(i)) {
-            tryPopulateBookContents(itemStack);
-          } else {
-            tryClearBookContents(itemStack);
-          }
-        }
+        updatePlayer(player);
+      } else {
+        populateInventory(player.getInventory());
+        populateInventory(player.getOpenInventory().getTopInventory());
       }
     }
   }
 
+  private void updatePlayer(Player player) {
+    final @Nullable ItemStack[] contents = player.getInventory().getContents();
+    for (int i = 0, contentsLength = contents.length; i < contentsLength; i++) {
+      final ItemStack itemStack = contents[i];
+      if (itemStack == null || itemStack.isEmpty()) {
+        continue;
+      }
+
+      if (isDirectlyAccessibleSlot(i)) {
+        tryPopulateBookContents(itemStack);
+      } else {
+        tryClearBookContents(itemStack);
+      }
+    }
+  }
+
+  @EventHandler
+  void onPlayerJoin(final PlayerJoinEvent event) {
+    updatePlayer(event.getPlayer());
+  }
+
+  @EventHandler
+  void onPlayerQuit(final PlayerQuitEvent event) {
+    clearInventory(event.getPlayer().getInventory());
+  }
+
+  @EventHandler
+  void onPlayerDropItem(final PlayerDropItemEvent event) {
+    final ItemStack is = event.getItemDrop().getItemStack();
+    tryClearBookContents(is);
+    event.getItemDrop().setItemStack(is);
+  }
+
   @EventHandler(priority = EventPriority.HIGHEST)
-  void onBookSave(final PlayerEditBookEvent event) {
+  void onBookEdit(final PlayerEditBookEvent event) {
     final BookMeta newBookMeta = event.getNewBookMeta();
 
     final PersistentDataContainer pdc = newBookMeta.getPersistentDataContainer();
@@ -78,7 +104,7 @@ public class StandardModeListener extends AbstractModeListener {
   }
 
   @EventHandler(priority = EventPriority.HIGHEST)
-  void onClose(final InventoryCloseEvent event) {
+  void onCloseInventory(final InventoryCloseEvent event) {
     plugin.getServer().getScheduler().runTask(plugin, () -> {
       for (int slot = 0; slot < 9; slot++) {
         tryPopulateBookContents(event.getPlayer().getInventory().getItem(slot));
@@ -89,13 +115,8 @@ public class StandardModeListener extends AbstractModeListener {
   @EventHandler(priority = EventPriority.HIGHEST)
   void onOpen(final InventoryOpenEvent event) {
     plugin.getServer().getScheduler().runTask(plugin, () -> {
-      for (final ItemStack is : event.getView().getTopInventory().getContents()) {
-        tryClearBookContents(is);
-      }
-
-      for (final ItemStack is : event.getView().getBottomInventory()) {
-        tryClearBookContents(is);
-      }
+      clearInventory(event.getPlayer().getInventory());
+      clearInventory(event.getInventory());
     });
   }
 

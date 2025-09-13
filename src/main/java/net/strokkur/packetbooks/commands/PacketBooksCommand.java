@@ -30,27 +30,29 @@ import org.bukkit.command.CommandSender;
 import java.io.IOException;
 
 @Command("packetbooks")
-@Permission("packetbooks.command.use")
+@SuppressWarnings("UnstableApiUsage")
 class PacketBooksCommand {
 
   private final PacketBooks plugin = PacketBooks.getPlugin(PacketBooks.class);
   private final Component prefix = MiniMessage.miniMessage().deserialize("<gradient:aqua:light_purple><b>PacketBooks</gradient>");
 
   @Executes
-  @SuppressWarnings("UnstableApiUsage")
+  @Permission("packetbooks.command.use")
   void printInformation(CommandSender sender) {
     sender.sendRichMessage("""
-            <gradient:aqua:light_purple><strikethrough>                        </strikethrough> PacketBooks <version> <strikethrough>                        </gradient>
+            <br><gradient:aqua:light_purple><strikethrough>                             </strikethrough> PacketBooks <strikethrough>                              </gradient>
             
-              <aqua>/packetbooks <dark_gray>—</dark_gray> <white>Print this message.</aqua>
-              <aqua>/packetbooks reload <dark_gray>—</dark_gray> <white>Reload the config.</aqua>
+              <transition:aqua:light_purple:0.5>/packetbooks <dark_gray>—</dark_gray> <white>Print this message.</transition>
+              <transition:aqua:light_purple:0.5>/packetbooks reload <dark_gray>—</dark_gray> <white>Reload the config.</transition>
+              <transition:aqua:light_purple:0.5>/packetbooks version <dark_gray>—</dark_gray> <white>Display version information.</transition>
             
-            <gradient:aqua:light_purple><strikethrough>                        </strikethrough> Made with ❤️ by Strokkur24 <strikethrough>                        </gradient>""",
+            <gradient:aqua:light_purple><strikethrough>                     </strikethrough> Made with ❤ by Strokkur24 <strikethrough>                     </gradient><br>""",
         Placeholder.parsed("version", plugin.getPluginMeta().getVersion())
     );
   }
 
   @Executes("reload")
+  @Permission("packetbooks.command.reload")
   void reload(CommandSender sender) {
     try {
       plugin.reloadPlugin();
@@ -59,5 +61,14 @@ class PacketBooksCommand {
       sender.sendRichMessage("<prefix> <red>Something went wrong. See the console for more details.", Placeholder.component("prefix", prefix));
       plugin.getSLF4JLogger().error("An error occurred reloading config file '{}'", PacketBooksConfig.FILE_PATH, e);
     }
+  }
+
+  @Executes("version")
+  @Permission("packetbooks.command.version")
+  void version(CommandSender sender) {
+    sender.sendRichMessage("<prefix> <transition:aqua:light_purple:0.5>Version <white><version>",
+        Placeholder.component("prefix", prefix),
+        Placeholder.parsed("version", plugin.getPluginMeta().getVersion())
+    );
   }
 }
