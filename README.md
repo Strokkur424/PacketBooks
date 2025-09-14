@@ -10,6 +10,10 @@ A simple plugin which empties all books' contents when it is not needed to fix v
 
 That's it! The plugin should just work out-of-the-box.
 
+## Discord Support
+If you have any questions, found any issues, or just want to chat with me, consider joining the [Paper Chan Hideout Discord server](https://discord.gg/WNfW4QXHP8)!
+You can use the [#packet-books](https://discord.com/channels/532557135167619093/1416848309217132735) channel to talk about this plugin! (Bonus point: That server has great emojis 🙂).
+
 ## What does it do under the hood?
 This plugin saves the contents of any book items externally to disk and then removes the actual data on the item.
 This means that at no point in time, a lot of data is sent to players. The only time when the book contents
