@@ -28,7 +28,7 @@ jobs:
         with:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
           username: PacketBooks
-          embed-title: PacketBooks has been updated to ${{ steps.message-parser.outputs.version }}!
+          embed-title: PacketBooks has been updated to ${{ steps.parse-version.outputs.version }}!
           embed-color: 14706969
           embed-description: |
             Download the latest release here:
