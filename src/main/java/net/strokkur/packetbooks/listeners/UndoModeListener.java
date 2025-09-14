@@ -20,8 +20,10 @@ package net.strokkur.packetbooks.listeners;
 import net.strokkur.packetbooks.PacketBooks;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.inventory.ItemStack;
 
 public class UndoModeListener extends AbstractModeListener {
 
@@ -33,13 +35,25 @@ public class UndoModeListener extends AbstractModeListener {
     }
   }
 
+  @Override
+  public String getName() {
+    return "undo";
+  }
+
   @EventHandler
-  void onPlayerJoin(PlayerJoinEvent event) {
+  void onPickupItem(final EntityPickupItemEvent event) {
+    final ItemStack item = event.getItem().getItemStack();
+    tryPopulateBookContents(item);
+    event.getItem().setItemStack(item);
+  }
+
+  @EventHandler
+  void onPlayerJoin(final PlayerJoinEvent event) {
     populateInventory(event.getPlayer().getInventory());
   }
 
   @EventHandler
-  void onInventoryOpen(InventoryOpenEvent event) {
+  void onInventoryOpen(final InventoryOpenEvent event) {
     populateInventory(event.getInventory());
   }
 }

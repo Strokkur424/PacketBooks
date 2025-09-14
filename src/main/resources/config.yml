@@ -18,4 +18,7 @@
 #             should keep PacketBooks, but set the mode to 'UNDO', which will slowly, but steadily permanently
 #             re-populate your books. After some time has passed, and you think that it is now safe to remove the
 #             plugin, you are free to do so without losing all book contents.
+#
+#   DISABLE   This mode completely disables the functionality of the plugin. It is not recommended to use
+#             is during normal runtime of your server and should only be used for debugging-purposes.
 mode: STANDARD

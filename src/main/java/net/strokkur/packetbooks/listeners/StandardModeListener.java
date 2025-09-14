@@ -38,6 +38,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 
 public class StandardModeListener extends AbstractModeListener {
 
@@ -52,6 +53,11 @@ public class StandardModeListener extends AbstractModeListener {
         populateInventory(player.getOpenInventory().getTopInventory());
       }
     }
+  }
+
+  @Override
+  public String getName() {
+    return "enabled";
   }
 
   private void updatePlayer(Player player) {
@@ -93,7 +99,7 @@ public class StandardModeListener extends AbstractModeListener {
 
     final PersistentDataContainer pdc = newBookMeta.getPersistentDataContainer();
     if (!pdc.has(plugin.getBookIdKey(), PersistentDataType.INTEGER)) {
-      final int newId = this.plugin.getHolder().saveNewBookData(new BookData(new ArrayList<>(newBookMeta.pages())));
+      final int newId = this.plugin.getHolder().saveNewBookData(CompletableFuture.completedFuture(new BookData(new ArrayList<>(newBookMeta.pages()))));
       pdc.set(plugin.getBookIdKey(), PersistentDataType.INTEGER, newId);
     } else {
       final int id = Objects.requireNonNull(pdc.get(plugin.getBookIdKey(), PersistentDataType.INTEGER));
@@ -105,19 +111,19 @@ public class StandardModeListener extends AbstractModeListener {
 
   @EventHandler(priority = EventPriority.HIGHEST)
   void onCloseInventory(final InventoryCloseEvent event) {
-    plugin.getServer().getScheduler().runTask(plugin, () -> {
+    event.getPlayer().getScheduler().execute(plugin, () -> {
       for (int slot = 0; slot < 9; slot++) {
         tryPopulateBookContents(event.getPlayer().getInventory().getItem(slot));
       }
-    });
+    }, null, 1);
   }
 
   @EventHandler(priority = EventPriority.HIGHEST)
   void onOpen(final InventoryOpenEvent event) {
-    plugin.getServer().getScheduler().runTask(plugin, () -> {
+    event.getPlayer().getScheduler().execute(plugin, () -> {
       clearInventory(event.getPlayer().getInventory());
       clearInventory(event.getInventory());
-    });
+    }, null, 1);
   }
 
   @EventHandler(priority = EventPriority.HIGHEST)
@@ -126,13 +132,13 @@ public class StandardModeListener extends AbstractModeListener {
       return;
     }
 
-    plugin.getServer().getScheduler().runTask(plugin, () -> {
+    event.getPlayer().getScheduler().execute(plugin, () -> {
       final ItemStack item = event.getPlayer().getInventory().getItem(event.getSlot());
       if (isDirectlyAccessibleSlot(event.getSlot())) {
         tryPopulateBookContents(item);
       } else {
         tryClearBookContents(item);
       }
-    });
+    }, null, 1);
   }
 }

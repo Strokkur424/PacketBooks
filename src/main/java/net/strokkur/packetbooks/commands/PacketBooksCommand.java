@@ -45,6 +45,7 @@ class PacketBooksCommand {
               <transition:aqua:light_purple:0.5>/packetbooks <dark_gray>—</dark_gray> <white>Print this message.</transition>
               <transition:aqua:light_purple:0.5>/packetbooks reload <dark_gray>—</dark_gray> <white>Reload the config.</transition>
               <transition:aqua:light_purple:0.5>/packetbooks version <dark_gray>—</dark_gray> <white>Display version information.</transition>
+              <transition:aqua:light_purple:0.5>/packetbooks mode <dark_gray>—</dark_gray> <white>Display the current mode.</transition>
             
             <gradient:aqua:light_purple><strikethrough>                     </strikethrough> Made with ❤ by Strokkur24 <strikethrough>                     </gradient><br>""",
         Placeholder.parsed("version", plugin.getPluginMeta().getVersion())
@@ -69,6 +70,15 @@ class PacketBooksCommand {
     sender.sendRichMessage("<prefix> <transition:aqua:light_purple:0.5>Version <white><version>",
         Placeholder.component("prefix", prefix),
         Placeholder.parsed("version", plugin.getPluginMeta().getVersion())
+    );
+  }
+
+  @Executes("mode")
+  @Permission("packetbooks.command.mode")
+  void mode(CommandSender sender) {
+    sender.sendRichMessage("<prefix> <transition:aqua:light_purple:0.5>Currently active mode: <white><mode>",
+        Placeholder.component("prefix", prefix),
+        Placeholder.parsed("mode", plugin.getModeName())
     );
   }
 }

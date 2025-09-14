@@ -42,6 +42,10 @@ class PacketBooksConfigModel {
       return PluginMode.UNDO;
     }
 
+    if (mode.equalsIgnoreCase("disable")) {
+      return PluginMode.DISABLE;
+    }
+
     final PacketBooks plugin = PacketBooks.getPlugin(PacketBooks.class);
     if (!mode.equalsIgnoreCase("standard") && !plugin.hasSendDefaultFallback()) {
       plugin.getSLF4JLogger().warn("({}) The mode has been set to {}, which is not a valid mode. Defaulting to STANDARD.", PacketBooksConfig.FILE_PATH, mode);

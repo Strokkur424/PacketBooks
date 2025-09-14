@@ -1,13 +1,14 @@
 name: PacketBooks
 description: A plugin to make the content of books purely packet based, fixing a bunch of exploits with oversized data.
 api-version: 1.21.6
-version: 1.0.0
+version: 1.1.0
 
 main: net.strokkur.packetbooks.PacketBooks
 loader: net.strokkur.packetbooks.PacketBooksLoader
 
 author: Strokkur24
 website: https://github.com/Strokkur424/PacketBooks
+folia-supported: true
 
 permissions:
   packetbooks.command.use:

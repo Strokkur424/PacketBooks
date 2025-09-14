@@ -24,6 +24,7 @@ import net.strokkur.packetbooks.config.PacketBooksConfigImpl;
 import net.strokkur.packetbooks.data.AbstractBookDataHolder;
 import net.strokkur.packetbooks.data.FileBookDataHolder;
 import net.strokkur.packetbooks.listeners.AbstractModeListener;
+import net.strokkur.packetbooks.listeners.DisableModeListener;
 import net.strokkur.packetbooks.listeners.StandardModeListener;
 import net.strokkur.packetbooks.listeners.UndoModeListener;
 import org.bukkit.NamespacedKey;
@@ -42,6 +43,8 @@ public final class PacketBooks extends JavaPlugin implements Listener {
 
   private @Nullable AbstractModeListener modeListener = null;
   private boolean hasSendDefaultFallback = false;
+
+  private final Object sendDefaultFallbackLock = new Object();
 
   @Override
   @SuppressWarnings("UnstableApiUsage")
@@ -63,8 +66,10 @@ public final class PacketBooks extends JavaPlugin implements Listener {
   }
 
   public void reloadPlugin() throws IOException {
-    hasSendDefaultFallback = false;
-    config.reload(this);
+    synchronized (sendDefaultFallbackLock) {
+      hasSendDefaultFallback = false;
+      config.reload(this);
+    }
 
     if (modeListener != null) {
       HandlerList.unregisterAll(modeListener);
@@ -73,8 +78,17 @@ public final class PacketBooks extends JavaPlugin implements Listener {
     modeListener = switch (config.mode()) {
       case STANDARD -> new StandardModeListener(this);
       case UNDO -> new UndoModeListener(this);
+      case DISABLE -> new DisableModeListener(this);
     };
     getServer().getPluginManager().registerEvents(modeListener, this);
+  }
+
+  public String getModeName() {
+    final AbstractModeListener modeListener = this.modeListener;
+    if (modeListener == null) {
+      return "null";
+    }
+    return modeListener.getName();
   }
 
   public AbstractBookDataHolder getHolder() {
@@ -86,10 +100,14 @@ public final class PacketBooks extends JavaPlugin implements Listener {
   }
 
   public boolean hasSendDefaultFallback() {
-    return hasSendDefaultFallback;
+    synchronized (sendDefaultFallbackLock) {
+      return hasSendDefaultFallback;
+    }
   }
 
   public void setHasSendDefaultFallback(final boolean hasSendDefaultFallback) {
-    this.hasSendDefaultFallback = hasSendDefaultFallback;
+    synchronized (sendDefaultFallbackLock) {
+      this.hasSendDefaultFallback = hasSendDefaultFallback;
+    }
   }
 }

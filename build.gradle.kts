@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "net.strokkur"
-version = "1.0.0"
+version = "1.1.0"
 
 repositories {
     mavenCentral()
@@ -36,6 +36,11 @@ sourceSets.main {
     blossom.javaSources {
         property("caffeine", libs.versions.caffeine.get())
     }
+}
+
+runPaper.folia.registerTask {
+    minecraftVersion(libs.versions.minecraft.get())
+    jvmArgs("-Xmx4G", "-Xms4G", "-Dcom.mojang.eula.agree=true")
 }
 
 tasks {

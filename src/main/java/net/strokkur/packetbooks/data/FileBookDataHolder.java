@@ -25,8 +25,14 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class FileBookDataHolder extends AbstractBookDataHolder {
+
+  protected final ReadWriteLock lock = new ReentrantReadWriteLock();
 
   private final JavaPlugin plugin;
   private final Path currentIdPath;
@@ -37,63 +43,75 @@ public class FileBookDataHolder extends AbstractBookDataHolder {
   }
 
   @Override
-  @Nullable
-  protected BookData loadBookData(final int id) {
-    final Path path = getPathForId(id);
-    if (!Files.exists(path)) {
-      return BookData.empty();
-    }
+  protected CompletableFuture<@Nullable BookData> loadBookData(final int id, final Executor executor) {
+    return CompletableFuture.supplyAsync(() -> {
+      final Path path = getPathForId(id);
+      if (!Files.exists(path)) {
+        return BookData.empty();
+      }
 
-    final String json;
-    try {
-      json = Files.readString(path, StandardCharsets.UTF_8);
-    } catch (IOException e) {
-      plugin.getSLF4JLogger().error("Failed to load book data for id {}", id, e);
-      return null;
-    }
+      final String json;
+      try {
+        json = Files.readString(path, StandardCharsets.UTF_8);
+      } catch (IOException e) {
+        plugin.getSLF4JLogger().error("Failed to load book data for id {}", id, e);
+        return null;
+      }
 
-    return BookData.deserializeFromJson(json);
+      return BookData.deserializeFromJson(json);
+    }, executor);
   }
 
   @Override
-  protected void saveBookData(final int id, final BookData bookData) {
-    final String json = bookData.serializeToJson();
-    final Path path = getPathForId(id);
+  protected CompletableFuture<Void> saveBookData(final int id, final CompletableFuture<BookData> bookData) {
+    return bookData.thenAccept(data -> {
+      final String json = data.serializeToJson();
+      final Path path = getPathForId(id);
 
-    try {
-      Files.createDirectories(path.getParent());
-      Files.writeString(path, json, StandardCharsets.UTF_8);
-    } catch (IOException e) {
-      plugin.getSLF4JLogger().error("Failed to save book data for id {}", id, e);
-    }
+      try {
+        Files.createDirectories(path.getParent());
+        Files.writeString(path, json, StandardCharsets.UTF_8);
+      } catch (IOException e) {
+        plugin.getSLF4JLogger().error("Failed to save book data for id {}", id, e);
+      }
+    });
   }
 
   @Override
-  public void loadCurrentId() {
-    if (!Files.exists(currentIdPath)) {
-      super.currentId = 0;
-      return;
-    }
+  public CompletableFuture<Void> loadCurrentId() {
+    return CompletableFuture.runAsync(() -> {
+      if (!Files.exists(currentIdPath)) {
+        return;
+      }
 
-    try {
-      final ByteBuffer buf = ByteBuffer.wrap(Files.readAllBytes(currentIdPath));
-      super.currentId = buf.getInt();
-    } catch (IOException e) {
-      plugin.getSLF4JLogger().error("Failed to load current book id path.", e);
-    }
+      lock.readLock().lock();
+      try {
+        final ByteBuffer buf = ByteBuffer.wrap(Files.readAllBytes(currentIdPath));
+        super.setCurrentIdValue(buf.getInt());
+      } catch (IOException e) {
+        plugin.getSLF4JLogger().error("Failed to load current book id path.", e);
+      } finally {
+        lock.readLock().unlock();
+      }
+    });
   }
 
   @Override
-  protected void incrementCurrentId() {
-    super.currentId++;
+  protected CompletableFuture<Void> incrementCurrentId() {
+    int id = super.incrementCurrentIdValue();
 
-    try {
-      final ByteBuffer buf = ByteBuffer.allocate(4);
-      buf.putInt(super.currentId);
-      Files.write(currentIdPath, buf.array());
-    } catch (IOException e) {
-      plugin.getSLF4JLogger().error("Failed to save current book id path.", e);
-    }
+    return CompletableFuture.runAsync(() -> {
+      lock.writeLock().lock();
+      try {
+        final ByteBuffer buf = ByteBuffer.allocate(4);
+        buf.putInt(id);
+        Files.write(currentIdPath, buf.array());
+      } catch (IOException e) {
+        plugin.getSLF4JLogger().error("Failed to save current book id path.", e);
+      } finally {
+        lock.writeLock().unlock();
+      }
+    });
   }
 
   private Path getPathForId(final int id) {

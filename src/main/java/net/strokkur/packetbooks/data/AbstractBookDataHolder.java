@@ -17,45 +17,86 @@
  */
 package net.strokkur.packetbooks.data;
 
-import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.AsyncCache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.Expiry;
 import org.jspecify.annotations.Nullable;
 
 import java.time.Duration;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public abstract class AbstractBookDataHolder {
 
-  private final Cache<Integer, BookData> cache = Caffeine.newBuilder()
+  private final ExecutorService executorService = Executors.newCachedThreadPool();
+  protected final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
+
+  private final AsyncCache<Integer, BookData> cache = Caffeine.newBuilder()
       .expireAfter(Expiry.accessing((key, value) -> Duration.ofMinutes(10)))
-      .build();
+      .buildAsync();
 
-  protected int currentId = 0;
+  private volatile int currentId = 0;
 
-  @Nullable
-  protected abstract BookData loadBookData(int id);
+  protected void setCurrentIdValue(int value) {
+    readWriteLock.writeLock().lock();
+    try {
+      currentId = value;
+    } finally {
+      readWriteLock.writeLock().unlock();
+    }
+  }
 
-  protected abstract void saveBookData(int id, BookData bookData);
+  protected int incrementCurrentIdValue() {
+    readWriteLock.writeLock().lock();
+    try {
+      int id = currentId;
+      id++;
+      currentId = id;
+      return id;
+    } finally {
+      readWriteLock.writeLock().unlock();
+    }
+  }
 
-  public abstract void loadCurrentId();
+  protected int getCurrentIdValue() {
+    readWriteLock.readLock().lock();
+    try {
+      return currentId;
+    } finally {
+      readWriteLock.readLock().unlock();
+    }
+  }
 
-  protected abstract void incrementCurrentId();
+  protected CompletableFuture<@Nullable BookData> loadBookData(int id) {
+    return loadBookData(id, executorService);
+  }
 
-  @Nullable
-  public BookData getBookData(int id) {
-    //noinspection DataFlowIssue - it is perfectly fine for the mappingFunction to return null
-    return cache.get(id, this::loadBookData);
+  protected abstract CompletableFuture<@Nullable BookData> loadBookData(int id, Executor executor);
+
+  protected abstract CompletableFuture<Void> saveBookData(int id, CompletableFuture<BookData> bookData);
+
+  public abstract CompletableFuture<Void> loadCurrentId();
+
+  protected abstract CompletableFuture<Void> incrementCurrentId();
+
+  public CompletableFuture<@Nullable BookData> getBookData(int id) {
+    return cache.get(id, (i, e) -> loadBookData(i));
   }
 
   public void updateBookData(int id, BookData bookData) {
-    cache.put(id, bookData);
-    saveBookData(id, bookData);
+    final CompletableFuture<BookData> future = CompletableFuture.completedFuture(bookData);
+    cache.put(id, future);
+    saveBookData(id, future);
   }
 
-  public int saveNewBookData(BookData bookData) {
-    final int id = currentId;
-    cache.put(currentId, bookData);
-    saveBookData(currentId, bookData);
+  public int saveNewBookData(CompletableFuture<BookData> bookData) {
+    final int id = getCurrentIdValue();
+    cache.put(getCurrentIdValue(), bookData);
+    saveBookData(getCurrentIdValue(), bookData);
     incrementCurrentId();
     return id;
   }

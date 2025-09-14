@@ -19,5 +19,6 @@ package net.strokkur.packetbooks.config;
 
 public enum PluginMode {
   STANDARD,
-  UNDO
+  UNDO,
+  DISABLE
 }

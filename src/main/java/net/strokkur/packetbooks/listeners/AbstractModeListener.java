@@ -35,6 +35,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @SuppressWarnings("UnstableApiUsage")
 public abstract class AbstractModeListener implements Listener {
@@ -44,6 +45,8 @@ public abstract class AbstractModeListener implements Listener {
   public AbstractModeListener(final PacketBooks plugin) {
     this.plugin = plugin;
   }
+
+  public abstract String getName();
 
   protected void populateInventory(Inventory inventory) {
     for (final ItemStack is : inventory.getContents()) {
@@ -105,7 +108,7 @@ public abstract class AbstractModeListener implements Listener {
 
       if (!pdc.has(plugin.getBookIdKey(), PersistentDataType.INTEGER)) {
         // No ID set, meaning first save the book
-        final int id = plugin.getHolder().saveNewBookData(new BookData(components));
+        final int id = plugin.getHolder().saveNewBookData(CompletableFuture.completedFuture(new BookData(components)));
         pdc.set(plugin.getBookIdKey(), PersistentDataType.INTEGER, id);
       }
     });
@@ -120,7 +123,7 @@ public abstract class AbstractModeListener implements Listener {
       return;
     }
 
-    final BookData data = plugin.getHolder().getBookData(id);
+    final BookData data = plugin.getHolder().getBookData(id).join();
     if (data == null) {
       plugin.getSLF4JLogger().debug("[populate] no data found for book {} with id {}", book, id);
       return;
@@ -152,5 +155,4 @@ public abstract class AbstractModeListener implements Listener {
 
     plugin.getSLF4JLogger().debug("[populate] book contents for {}", book);
   }
-
 }
