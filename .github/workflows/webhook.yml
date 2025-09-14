@@ -1,0 +1,35 @@
+name: Publish latest updates
+on:
+  workflow_dispatch:
+
+jobs:
+  webhook_run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+ 
+      - name: Get latest tag
+        id: message-parser
+        run: |
+          TAG=$(git ls-remote --tags --sort=committerdate | grep -o 'v.*' | sort -r | head -1)
+          VERSION=${TAG:1}
+
+          echo "Latest tag: ${TAG}"
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+      - name: Trigger webhook
+        uses: tsickert/discord-webhook@v7.0.0
+        with:
+          webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
+          username: PacketBooks
+          avatar-url: https://github.com/Strokkur424/PacketBooks/blob/f98b5b37da6b57f79103b87fa9a6610e1ec5011c/public/packetbooks.png
+          embed-title: PacketBooks has been updated to ${{ steps.message-parser.outputs.version }}!
+          embed-description: |
+            Download the latest release here:
+
+            <:modrinth:1016015520216141855> [Modrinth](https://modrinth.com/plugin/packetbooks/version/${{ steps.message-parser.outputs.version }})
+            <:hangar:1099459442866667581> [Hangar](https://hangar.papermc.io/Strokkur424/PacketBooks/versions/${{ steps.message-parser.outputs.version }})
+            <:github:927433909254369291> [GitHub}(https://github.com/Strokkur424/PacketBooks/releases/tag/${{ steps.message-parser.outputs.tag }})
+          embed-thumbnail-url: https://github.com/EterNityCH/paperchan/blob/9dadba5888766d0dcce4f0ded0e0bf7bf60cff44/Paper%20Chan%20Emojis/Emoji%20paperUwU.png
+          embed-timestamp: ${{ steps.date.outputs.date }}
