@@ -56,7 +56,7 @@ public final class PacketBooks extends JavaPlugin implements Listener {
 
   @Override
   public void onEnable() {
-    this.holder.loadCurrentId();
+    this.holder.loadCurrentId().join();
 
     try {
       reloadPlugin();
