@@ -2,15 +2,14 @@
 minecraft = "1.21.11"
 paper = "1.21.6-R0.1-SNAPSHOT"
 
+caffeine = "3.2.2"
+
 strokk-config = "1.0.2"
 strokk-commands = "2.0.2"
 
-run = "3.0.2"
-paperweight = "2.0.0-beta.19"
-spotless = "8.1.0"
-
-caffeine = "3.2.2"
-blossom = "2.1.0"
+plugin-run = "3.0.2"
+plugin-paperweight = "2.0.0-beta.19"
+plugin-spotless = "8.1.0"
 
 [libraries]
 paper-api = { module = "io.papermc.paper:paper-api", version.ref = "paper" }
@@ -20,8 +19,10 @@ strokk-config-processor = { module = "net.strokkur:strokk-config-processor", ver
 strokk-commands-annotations = { module = "net.strokkur.commands:annotations-paper", version.ref = "strokk-commands" }
 strokk-commands-processor = { module = "net.strokkur.commands:processor-paper", version.ref = "strokk-commands" }
 
+plugin-paperweight-userdev = { module = "io.papermc.paperweight:paperweight-userdev", version.ref = "plugin-paperweight" }
+plugin-spotless = { module = "com.diffplug.spotless:spotless-plugin-gradle", version.ref = "plugin-spotless" }
+
 [plugins]
-run-paper = { id = "xyz.jpenilla.run-paper", version.ref = "run" }
-blossom = { id = "net.kyori.blossom", version.ref = "blossom" }
-paperweight-userdev = { id = "io.papermc.paperweight.userdev", version.ref = "paperweight" }
-spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
+run-paper = { id = "xyz.jpenilla.run-paper", version.ref = "plugin-run" }
+paperweight-userdev = { id = "io.papermc.paperweight.userdev" }
+spotless = { id = "com.diffplug.spotless" }

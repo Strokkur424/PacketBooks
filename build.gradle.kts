@@ -1,23 +1,15 @@
-import com.diffplug.spotless.LineEnding
 import xyz.jpenilla.runpaper.task.RunServer
-import java.nio.charset.StandardCharsets
 
 plugins {
-  id("java")
+  id("common")
   alias(libs.plugins.run.paper)
-  alias(libs.plugins.spotless)
-  alias(libs.plugins.paperweight.userdev)
-}
-
-repositories {
-  mavenCentral()
-  maven("https://repo.papermc.io/repository/maven-public/")
-  maven("https://eldonexus.de/repository/maven-public/")
 }
 
 dependencies {
-  paperweight.paperDevBundle(libs.versions.paper)
+  compileOnly(libs.paper.api)
   compileOnly(libs.caffeine)
+
+  implementation(project("paper-abstract"))
 
   compileOnly(libs.strokk.commands.annotations)
   compileOnly(libs.strokk.config.annotations)
@@ -28,6 +20,9 @@ dependencies {
 
 tasks {
   jar {
+    sequenceOf("abstract", "1-21-6").forEach {
+      from(project(":paper-$it").sourceSets["main"].output)
+    }
     manifest {
       attributes("Caffeine-Version" to libs.versions.caffeine)
     }
@@ -38,28 +33,6 @@ tasks {
     filesMatching("paper-plugin.yml") {
       expand(props)
     }
-  }
-}
-
-java {
-  toolchain.languageVersion = JavaLanguageVersion.of(21)
-}
-
-spotless {
-  encoding = StandardCharsets.UTF_8
-  lineEndings = LineEnding.UNIX
-
-  java {
-    trimTrailingWhitespace()
-    endWithNewline()
-    leadingTabsToSpaces(2)
-
-    forbidWildcardImports()
-    forbidModuleImports()
-    removeUnusedImports()
-
-    licenseHeaderFile(rootProject.file("HEADER"))
-    target("**/*.java")
   }
 }
 
@@ -75,4 +48,3 @@ runPaper.folia.registerTask {
 tasks.runServer {
   configureServer()
 }
-

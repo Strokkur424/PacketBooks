@@ -27,15 +27,20 @@ import net.strokkur.packetbooks.listeners.AbstractModeListener;
 import net.strokkur.packetbooks.listeners.DisableModeListener;
 import net.strokkur.packetbooks.listeners.StandardModeListener;
 import net.strokkur.packetbooks.listeners.UndoModeListener;
+import net.strokkur.packetbooks.paper.AbstractPaperProvider;
 import org.bukkit.NamespacedKey;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
 public final class PacketBooks extends JavaPlugin implements Listener {
+  private @MonotonicNonNull AbstractPaperProvider provider;
+
   private final AbstractBookDataHolder holder = new FileBookDataHolder(this);
   private final NamespacedKey bookIdKey = new NamespacedKey(this, "book_id");
   private final PacketBooksConfig config = new PacketBooksConfigImpl();
@@ -48,6 +53,12 @@ public final class PacketBooks extends JavaPlugin implements Listener {
   @Override
   @SuppressWarnings("UnstableApiUsage")
   public void onLoad() {
+    try {
+      provider = AbstractPaperProvider.getProvider(LoggerFactory.getLogger("PacketBooks/NMS"));
+    } catch (final ReflectiveOperationException ex) {
+      throw new RuntimeException(ex);
+    }
+
     this.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS.newHandler(
       event -> PacketBooksCommandBrigadier.register(event.registrar(), this)
     ));
