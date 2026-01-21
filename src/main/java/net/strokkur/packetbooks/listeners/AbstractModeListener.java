@@ -89,9 +89,9 @@ public abstract class AbstractModeListener implements Listener {
         }
 
         final WrittenBookContent empty = WrittenBookContent.writtenBookContent(content.title(), content.author())
-            .generation(content.generation())
-            .resolved(content.resolved())
-            .build();
+          .generation(content.generation())
+          .resolved(content.resolved())
+          .build();
 
         book.setData(DataComponentTypes.WRITTEN_BOOK_CONTENT, empty);
       } else if (book.hasData(DataComponentTypes.WRITABLE_BOOK_CONTENT)) {
@@ -134,22 +134,22 @@ public abstract class AbstractModeListener implements Listener {
       Preconditions.checkNotNull(empty);
 
       final WrittenBookContent original = WrittenBookContent.writtenBookContent(empty.title(), empty.author())
-          .addPages(data.components())
-          .generation(empty.generation())
-          .resolved(empty.resolved())
-          .build();
+        .addPages(data.components())
+        .generation(empty.generation())
+        .resolved(empty.resolved())
+        .build();
       book.setData(DataComponentTypes.WRITTEN_BOOK_CONTENT, original);
     } else if (book.hasData(DataComponentTypes.WRITABLE_BOOK_CONTENT)) {
       final WritableBookContent empty = book.getData(DataComponentTypes.WRITABLE_BOOK_CONTENT);
       Preconditions.checkNotNull(empty);
 
       final List<String> plainText = data.components().stream()
-          .map(PlainTextComponentSerializer.plainText()::serialize)
-          .toList();
+        .map(PlainTextComponentSerializer.plainText()::serialize)
+        .toList();
 
       final WritableBookContent original = WritableBookContent.writeableBookContent()
-          .addPages(plainText)
-          .build();
+        .addPages(plainText)
+        .build();
       book.setData(DataComponentTypes.WRITABLE_BOOK_CONTENT, original);
     }
 

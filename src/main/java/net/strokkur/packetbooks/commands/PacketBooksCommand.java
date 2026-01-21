@@ -20,9 +20,11 @@ package net.strokkur.packetbooks.commands;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
-import net.strokkur.commands.annotations.Command;
-import net.strokkur.commands.annotations.Executes;
-import net.strokkur.commands.annotations.Permission;
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
+import net.strokkur.commands.Command;
+import net.strokkur.commands.DefaultExecutes;
+import net.strokkur.commands.Executes;
+import net.strokkur.commands.permission.Permission;
 import net.strokkur.packetbooks.PacketBooks;
 import net.strokkur.packetbooks.config.PacketBooksConfig;
 import org.bukkit.command.CommandSender;
@@ -30,25 +32,31 @@ import org.bukkit.command.CommandSender;
 import java.io.IOException;
 
 @Command("packetbooks")
-@SuppressWarnings("UnstableApiUsage")
 class PacketBooksCommand {
-
-  private final PacketBooks plugin = PacketBooks.getPlugin(PacketBooks.class);
+  private final PacketBooks plugin;
   private final Component prefix = MiniMessage.miniMessage().deserialize("<gradient:aqua:light_purple><b>PacketBooks</gradient>");
+  private final TagResolver versionResolver;
 
-  @Executes
+  @SuppressWarnings("UnstableApiUsage")
+  public PacketBooksCommand(final PacketBooks plugin) {
+    this.plugin = plugin;
+    this.versionResolver = Placeholder.parsed("version", plugin.getPluginMeta().getVersion());
+  }
+
+  @DefaultExecutes
   @Permission("packetbooks.command.use")
-  void printInformation(CommandSender sender) {
+  void printInformation(CommandSender sender, String[] args) {
     sender.sendRichMessage("""
-            <br><gradient:aqua:light_purple><strikethrough>                             </strikethrough> PacketBooks <strikethrough>                              </gradient>
-            
-              <transition:aqua:light_purple:0.5>/packetbooks <dark_gray>—</dark_gray> <white>Print this message.</transition>
-              <transition:aqua:light_purple:0.5>/packetbooks reload <dark_gray>—</dark_gray> <white>Reload the config.</transition>
-              <transition:aqua:light_purple:0.5>/packetbooks version <dark_gray>—</dark_gray> <white>Display version information.</transition>
-              <transition:aqua:light_purple:0.5>/packetbooks mode <dark_gray>—</dark_gray> <white>Display the current mode.</transition>
-            
-            <gradient:aqua:light_purple><strikethrough>                     </strikethrough> Made with ❤ by Strokkur24 <strikethrough>                     </gradient><br>""",
-        Placeholder.parsed("version", plugin.getPluginMeta().getVersion())
+        <br><gradient:aqua:light_purple><strikethrough>                             </strikethrough> PacketBooks <strikethrough>                              </gradient>
+
+          <transition:aqua:light_purple:0.5>/<cmd> <dark_gray>—</dark_gray> <white>Print this message.</transition>
+          <transition:aqua:light_purple:0.5>/<cmd> reload <dark_gray>—</dark_gray> <white>Reload the config.</transition>
+          <transition:aqua:light_purple:0.5>/<cmd> version <dark_gray>—</dark_gray> <white>Display version information.</transition>
+          <transition:aqua:light_purple:0.5>/<cmd> mode <dark_gray>—</dark_gray> <white>Display the current mode.</transition>
+
+        <gradient:aqua:light_purple><strikethrough>                     </strikethrough> Made with ❤ by Strokkur24 <strikethrough>                     </gradient><br>""",
+      versionResolver,
+      Placeholder.unparsed("cmd", args[0])
     );
   }
 
@@ -68,8 +76,8 @@ class PacketBooksCommand {
   @Permission("packetbooks.command.version")
   void version(CommandSender sender) {
     sender.sendRichMessage("<prefix> <transition:aqua:light_purple:0.5>Version <white><version>",
-        Placeholder.component("prefix", prefix),
-        Placeholder.parsed("version", plugin.getPluginMeta().getVersion())
+      Placeholder.component("prefix", prefix),
+      versionResolver
     );
   }
 
@@ -77,8 +85,8 @@ class PacketBooksCommand {
   @Permission("packetbooks.command.mode")
   void mode(CommandSender sender) {
     sender.sendRichMessage("<prefix> <transition:aqua:light_purple:0.5>Currently active mode: <white><mode>",
-        Placeholder.component("prefix", prefix),
-        Placeholder.parsed("mode", plugin.getModeName())
+      Placeholder.component("prefix", prefix),
+      Placeholder.parsed("mode", plugin.getModeName())
     );
   }
 }

@@ -36,7 +36,6 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 
 public final class PacketBooks extends JavaPlugin implements Listener {
-
   private final AbstractBookDataHolder holder = new FileBookDataHolder(this);
   private final NamespacedKey bookIdKey = new NamespacedKey(this, "book_id");
   private final PacketBooksConfig config = new PacketBooksConfigImpl();
@@ -50,7 +49,7 @@ public final class PacketBooks extends JavaPlugin implements Listener {
   @SuppressWarnings("UnstableApiUsage")
   public void onLoad() {
     this.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS.newHandler(
-        event -> PacketBooksCommandBrigadier.register(event.registrar())
+      event -> PacketBooksCommandBrigadier.register(event.registrar(), this)
     ));
   }
 

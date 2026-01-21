@@ -36,8 +36,8 @@ public abstract class AbstractBookDataHolder {
   protected final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
 
   private final AsyncCache<Integer, BookData> cache = Caffeine.newBuilder()
-      .expireAfter(Expiry.accessing((key, value) -> Duration.ofMinutes(10)))
-      .buildAsync();
+    .expireAfter(Expiry.accessing((key, value) -> Duration.ofMinutes(10)))
+    .buildAsync();
 
   private volatile int currentId = 0;
 

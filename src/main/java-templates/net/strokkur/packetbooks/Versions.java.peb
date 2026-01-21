@@ -1,5 +1,0 @@
-package net.strokkur.packetbooks;
-
-interface Versions {
-    String VER_CAFFEINE = "{{ caffeine }}";
-}
